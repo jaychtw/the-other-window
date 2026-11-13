@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Other Window · 另一扇窗</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f6f2e8;color:#253d36;font:16px/1.55 'Segoe UI',system-ui,sans-serif}main,header,footer{max-width:1080px;margin:auto;padding:20px clamp(16px,4vw,48px)}header,footer,.bar,.tabs,.tools{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}header{border-bottom:1px solid #c1c3b5}.brand{font-family:Georgia,serif;font-size:1.35rem;font-weight:bold;display:flex;align-items:center;gap:10px}.mark{width:23px;height:25px;border:2px solid;background:linear-gradient(90deg,transparent 44%,#253d36 44% 54%,transparent 54%),linear-gradient(transparent 42%,#253d36 42% 50%,transparent 50%)}button,select,input,textarea{font:inherit;color:inherit}button,select{border:1px solid #b5bcad;background:#fbfaf4;border-radius:4px;padding:7px 12px;cursor:pointer}button:hover{background:#e4e6d9}button[aria-pressed=true],.primary{background:#25493d;color:white;border-color:#25493d}.primary:hover,button[aria-pressed=true]:hover{background:#385d50}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #b45730;outline-offset:3px}.tools,.tabs{justify-content:flex-start}.hero{padding:clamp(24px,4vw,44px) 0 22px}.kicker,.section{font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#82502f}.hero h1{font:normal clamp(2.3rem,5vw,4.4rem)/1.04 Georgia,'Noto Serif TC',serif;letter-spacing:-.045em;margin:10px 0 14px;overflow-wrap:anywhere}.hero p{margin:0;color:#526256}.layout{display:grid;grid-template-columns:minmax(0,1fr) 235px;gap:24px}.page{background:#fffdf7;border:1px solid #cecdbf;border-top:4px solid #a96845;border-radius:4px;padding:clamp(20px,4vw,42px);box-shadow:0 5px 16px #4848290a;min-width:0}.rail{border-left:1px solid #c1c3b5;padding-left:20px}.rail button{display:block;width:100%;text-align:left;margin:8px 0;overflow-wrap:anywhere}.tabs{margin:0 0 18px}.tabs button{max-width:100%;overflow-wrap:anywhere}.page h2{font:normal clamp(1.7rem,4vw,2.5rem)/1.2 Georgia,serif;margin:12px 0}.prose{font:1.25rem/1.75 Georgia,'Noto Serif TC',serif;white-space:pre-wrap;overflow-wrap:anywhere}.note{font-size:.9rem;color:#516353}.inset{border-left:3px solid #b66c43;padding:10px 16px;background:#f1eee3;margin:16px 0}.page label,.rail label{display:block;font-size:.88rem;font-weight:650;margin:12px 0 4px}input,textarea{width:100%;border:1px solid #aab2a5;border-radius:4px;padding:9px;background:#fffefb}textarea{min-height:145px;resize:vertical;line-height:1.6}.rail select,header select{max-width:100%}footer{margin-top:24px;border-top:1px solid #c1c3b5;font-size:.87rem}h2,h3{overflow-wrap:anywhere}details{margin-top:16px}summary{cursor:pointer;font-weight:600}.bar{justify-content:flex-start}.order{width:100%}#status{min-height:1.5em}.library{max-width:min(280px,75vw)}@media(max-width:720px){.layout{grid-template-columns:1fr}.rail{border-left:0;border-top:1px solid #c1c3b5;padding:14px 0 0}.hero{padding:24px 0 16px}.page{padding:20px}header{gap:8px}button,select{min-height:42px}}
+</style>
+</head><body>
+<header><div class="brand"><span class="mark" aria-hidden="true"></span><span id="brand"></span></div><div class="tools"><select class="library" id="library"></select><button id="new"></button><button id="lang"></button></div></header>
+<main><section class="hero"><div class="kicker" id="kind"></div><h1 id="title"></h1><p id="intro"></p></section><div class="tabs" id="modes"></div><div class="layout"><article class="page" id="page"></article><aside class="rail" id="rail"></aside></div></main>
+<footer><span role="status" id="status"></span><div class="tools"><button id="export"></button><button id="import"></button><input type="file" accept=".json,application/json" id="file" hidden></div></footer>
+<script>
+'use strict';
+
+const $ = s => document.querySelector(s),
+  key = 'the-other-window.v1';
+const names = [['Passenger', 'Driver', 'Woman at the stop'], ['乘客', '司機', '站牌旁的女人']];
+const moments = [['The umbrella', 'The raised hand', 'After the turn'], ['那把傘', '舉起的手', '轉彎之後']];
+const passages = [[['A yellow umbrella lay across the boy’s knees. Each time the bus rocked, he caught the handle before it touched the floor.', 'Through the rear glass I saw a woman lift her hand. I reached up to ring the bell for her. The boy caught my sleeve. “Wait,” he said.', 'Two streets later he let go. I kept thinking about how certain I had been, for half a second, that somebody needed my help.'], ['The boy held his umbrella sideways until I pointed to the aisle. Behind him, the woman stepped down from the bus.', 'In the mirror I saw her shake her head when I held the doors. I closed them. As we pulled away, her hand went up again. This time she was looking past me.', 'At the lights I checked the mirror again. The boy had moved to the back seat. The aisle was clear.'], ['I had taped the split in the yellow umbrella that morning. On the bus I put the handle in his hand and reminded him where to get off.', 'I waited for his face to appear in the rear window. We had practiced this part. One hand up meant “I can see you.” He raised his.', 'When the bus turned, I was still waving. His first trip home alone, and I was the one who had forgotten to bring an umbrella.']], [['男孩膝上橫著一把黃傘。公車每晃一下，他就伸手接住傘柄，沒讓它碰到地板。', '隔著後窗，我看見一個女人舉起手。我正想替她按下車鈴，男孩拉住我的袖子。「等一下。」他說。', '過了兩個路口，他才鬆手。我一直在想，那短短半秒裡，我怎麼會那麼篤定，有人需要我幫忙。'], ['男孩橫拿著傘。我指了指走道，他才把傘收好。他身後的女人踏下公車。', '我還替她留著門。後照鏡裡，她搖了搖頭，我才關門。車剛起步，她又舉起手。這回她的目光越過了我。', '停紅燈時，我又看了一眼後照鏡。男孩已經坐到最後一排。走道空了。'], ['早上我用膠帶補好了那把黃傘。上車後，我把傘柄塞進他手裡，又提醒他一次要在哪站下車。', '我等著他的臉出現在後窗。我們練習過。舉起一隻手，就是「我看得到你」。他也把手舉了起來。', '公車轉了彎，我還在揮手。他第一次自己搭車回家，忘記帶傘的人倒是我。']]];
+const orders = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]];
+let carry = null;
+let lang = 0,
+  projects = [],
+  id = 'sample',
+  mode = 'read',
+  v = 0,
+  m = 1,
+  order = 0,
+  prompt = -1,
+  warning = false;
+const t = (en, zh) => lang ? zh : en;
+function sample() {
+  return {
+    title: t('The rear window', '公車後窗'),
+    moments: moments[lang],
+    voices: names[lang].map((name, i) => ({
+      name,
+      basis: 2,
+      text: passages[lang][i]
+    }))
+  };
+}
+function project() {
+  return projects.find(p => p.id === id) || sample();
+}
+function valid(p) {
+  return p && typeof p.title === 'string' && Array.isArray(p.moments) && p.moments.length > 0 && p.moments.every(x => typeof x === 'string') && Array.isArray(p.voices) && p.voices.length === 3 && p.voices.every(x => x && typeof x.name === 'string' && [0, 1, 2].includes(x.basis) && Array.isArray(x.text) && x.text.length === p.moments.length && x.text.every(s => typeof s === 'string'));
+}
+try {
+  const raw = localStorage.getItem(key);
+  if (raw) {
+    const d = JSON.parse(raw);
+    if (!Array.isArray(d.projects) || !d.projects.every(valid)) throw Error();
+    projects = d.projects;
+    lang = d.lang === 1 ? 1 : 0;
+    id = projects.some(p => p.id === d.id) ? d.id : 'sample';
+  }
+} catch {
+  warning = true;
+}
+if (id !== "sample") m = 0;
+function save() {
+  try {
+    localStorage.setItem(key, JSON.stringify({
+      lang,
+      id,
+      projects
+    }));
+    warning = false;
+  } catch {
+    warning = true;
+  }
+  statusLine();
+}
+function statusLine() {
+  $('#status').textContent = warning ? t('Local storage unavailable or unreadable. Export a backup.', '無法讀寫本機資料。請匯出備份。') : t('Drafts stay in this browser.', '草稿儲存在這個瀏覽器。');
+}
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
+function reset() {
+  carry = null;
+  v = 0;
+  m = 0;
+  order = 0;
+  prompt = -1;
+}
+function el(tag, txt, parent) {
+  let n = document.createElement(tag);
+  if (txt !== undefined) n.textContent = txt;
+  if (parent) parent.append(n);
+  return n;
+}
+function btn(parent, txt, action, pressed) {
+  let b = el('button', txt, parent);
+  b.onclick = action;
+  if (pressed !== undefined) b.setAttribute('aria-pressed', String(pressed));
+  return b;
+}
+function label(parent, txt, input) {
+  let l = el('label', txt, parent);
+  l.htmlFor = input.id;
+  parent.append(input);
+}
+function field(parent, txt, value, onchange, tag = 'input') {
+  let n = el(tag);
+  n.id = 'i' + uid();
+  label(parent, txt, n);
+  n.value = value;
+  n.oninput = () => {
+    onchange(n.value);
+    save();
+  };
+  return n;
+}
+function select(parent, txt, opts, sel, fn) {
+  let n = el('select');
+  n.id = 's' + uid();
+  label(parent, txt, n);
+  opts.forEach((x, i) => n.add(new Option(x, i)));
+  n.value = sel;
+  n.onchange = () => fn(+n.value);
+  return n;
+}
+function addProject(p) {
+  p.id = uid();
+  projects.push(p);
+  id = p.id;
+  reset();
+  mode = 'write';
+  save();
+  render();
+}
+function switchMode(next) {
+  if (next === 'write' && id === 'sample') {
+    const copy = structuredClone(sample());
+    copy.id = uid();
+    projects.push(copy);
+    id = copy.id;
+    save();
+  }
+  mode = next;
+  prompt = -1;
+  render();
+}
+function refreshLibrary() {
+  const n = $('#library');
+  n.replaceChildren(new Option(t('Taipei sample', '台北範例'), 'sample'));
+  projects.forEach(p => n.add(new Option(p.title || t('Untitled', '未命名'), p.id)));
+  n.value = id;
+}
+function render() {
+  const p = project(),
+    sampleOn = id === 'sample';
+  document.documentElement.lang = lang ? 'zh-Hant' : 'en';
+  $('#brand').textContent = t('The Other Window', '另一扇窗');
+  $('#library').setAttribute('aria-label', t('Open notebook', '開啟筆記本'));
+  refreshLibrary();
+  $('#new').textContent = t('+ New notebook', '＋ 新筆記本');
+  $('#lang').textContent = t('繁中', 'English');
+  $('#export').textContent = t('Export notebook', '匯出筆記本');
+  $('#import').textContent = t('Import', '匯入');
+  $('#kind').textContent = sampleOn ? t('Taipei  /  A short fiction', '台北  ／  短篇小說') : t('Writing notebook', '寫作筆記本');
+  $('#title').textContent = p.title || t('Untitled', '未命名');
+  $('#intro').textContent = sampleOn ? t('A boy takes the bus. Three people remember the same goodbye.', '一個男孩搭上公車。三個人，記得同一場道別。') : t('Follow one moment through different eyes.', '換一雙眼睛，重看同一個瞬間。');
+  const tabs = $('#modes');
+  tabs.replaceChildren();
+  btn(tabs, t('Read', '閱讀'), () => switchMode('read'), mode === 'read');
+  btn(tabs, sampleOn ? t('Adapt this story', '改寫這個故事') : t('Write', '寫作'), () => switchMode('write'), mode === 'write');
+  const rail = $('#rail'),
+    page = $('#page');
+  rail.replaceChildren();
+  page.replaceChildren();
+  const voice = p.voices[v],
+    voiceName = i => p.voices[i].name || t('Voice ', '視角 ') + (i + 1),
+    momentName = i => p.moments[i] || t('Moment ', '瞬間 ') + (i + 1);
+  el('div', t('Shared moments', '共同瞬間'), rail).className = 'section';
+  p.moments.forEach((x, i) => btn(rail, momentName(i), () => {
+    m = i;
+    prompt = -1;
+    render();
+  }, i === m));
+  if (mode === 'write') btn(rail, t('+ Add moment', '＋ 新增瞬間'), () => {
+    p.moments.push('');
+    p.voices.forEach(x => x.text.push(''));
+    m = p.moments.length - 1;
+    prompt = -1;
+    save();
+    render();
+    $('#moment-name').focus();
+  });
+  if (mode === 'read') {
+    select(rail, t('Reading order', '閱讀順序'), orders.map(seq => seq.map(voiceName).join(' → ')), order, i => {
+      order = i;
+      v = orders[i][0];
+      render();
+    }).className = 'order';
+  }
+  el('div', momentName(m), page).className = 'section';
+  let nav = el('div', undefined, page);
+  nav.className = 'tabs';
+  nav.style.marginTop = '12px';
+  (mode === 'read' ? orders[order] : [0, 1, 2]).forEach(i => btn(nav, voiceName(i), () => {
+    v = i;
+    prompt = -1;
+    render();
+  }, i === v));
+  const bases = [t('Observed', '觀察'), t('Recalled', '回憶'), t('Imagined', '想像')];
+  if (mode === 'read') {
+    el('h2', voiceName(v), page);
+    el('span', bases[voice.basis], page).className = 'kicker';
+    el('p', voice.text[m] || t('This voice is silent here.', '這個視角在此留白。'), page).className = 'prose';
+    const pos = orders[order].indexOf(v);
+    if (pos < 2) btn(page, t('Read next → ', '接著讀 → ') + voiceName(orders[order][pos + 1]), () => {
+      v = orders[order][pos + 1];
+      render();
+    });else if (m + 1 < p.moments.length) btn(page, t('Next moment →', '下一個瞬間 →'), () => {
+      m++;
+      v = orders[order][0];
+      render();
+    });else el('p', t('Which detail changed your reading of the first voice?', '哪個細節改變了你對第一個敘述者的理解？'), page).className = 'inset';
+  } else {
+    if (carry && carry.v === v && carry.m === m) {
+      const ref = el('div', undefined, page);
+      ref.className = 'inset';
+      el('strong', t('Writing from', '改寫參照'), ref);
+      el('p', carry.line, ref);
+      el('p', carry.cue, ref);
+    }
+    field(page, t('Passage', '段落'), voice.text[m], val => {
+      voice.text[m] = val;
+    }, 'textarea');
+    select(page, t('Source of this account', '敘述來源'), bases, voice.basis, i => {
+      voice.basis = i;
+      save();
+    });
+    const b = btn(page, t('Find another angle', '換個角度想'), () => {
+      prompt = (prompt + 1) % 3;
+      render();
+      $('#cue').focus();
+    });
+    b.style.marginTop = '16px';
+    if (prompt >= 0) {
+      let excerpt = voice.text[m].trim().split(/[\n。！？.!?]/u).find(x => x.trim())?.slice(0, 100) || momentName(m);
+      let next = (v + 1) % 3;
+      let box = el('div', undefined, page);
+      box.className = 'inset';
+      box.id = 'cue';
+      box.tabIndex = -1;
+      el('strong', t('Try writing as ', '試著以這個視角寫：') + voiceName(next), box);
+      el('p', '“' + excerpt + '”', box);
+      el('p', [t('Which detail could this witness actually see? Open with that detail, then give it a different meaning.', '這個人親眼看到了哪個細節？用它開場，再賦予它另一種意思。'), t('What happened just before this line, outside the first narrator’s view? Begin there and arrive at the same instant.', '這句話之前，第一位敘述者沒看到什麼？從那裡寫起，再回到同一刻。'), t('Let this person misread one gesture. What private memory makes that reading feel certain?', '讓這個人誤解一個動作。哪段私人的記憶讓這個解讀顯得理所當然？')][prompt], box);
+      btn(box, t('Write that perspective →', '寫下這個視角 →'), () => {
+        carry = {
+          v: next,
+          m,
+          line: excerpt,
+          cue: box.querySelectorAll('p')[1].textContent
+        };
+        v = next;
+        prompt = -1;
+        render();
+        $('textarea').focus();
+      });
+    }
+    const d = el('details', undefined, page);
+    el('summary', t('Notebook and voice settings', '筆記本與視角設定'), d);
+    field(d, t('Notebook title', '筆記本標題'), p.title, val => {
+      p.title = val;
+      $('#title').textContent = val || t('Untitled', '未命名');
+      refreshLibrary();
+    });
+    field(d, t('Voice name', '視角名稱'), voice.name, val => {
+      voice.name = val;
+      nav.children[v].textContent = voiceName(v);
+    });
+    const mn = field(d, t('Moment name', '瞬間名稱'), p.moments[m], val => {
+      p.moments[m] = val;
+      page.firstChild.textContent = momentName(m);
+      rail.querySelectorAll('button')[m].textContent = momentName(m);
+    });
+    mn.id = 'moment-name';
+    mn.previousSibling.htmlFor = mn.id;
+    if (!p.moments[m]) d.open = true;
+  }
+  statusLine();
+}
+$('#new').onclick = () => addProject({
+  title: t('Untitled notebook', '未命名筆記本'),
+  moments: [''],
+  voices: [0, 1, 2].map(i => ({
+    name: t('Voice ', '視角 ') + (i + 1),
+    basis: 2,
+    text: ['']
+  }))
+});
+$('#library').onchange = e => {
+  id = e.target.value;
+  reset();
+  mode = 'read';
+  save();
+  render();
+};
+$('#lang').onclick = () => {
+  lang = 1 - lang;
+  save();
+  render();
+};
+$('#export').onclick = () => {
+  const a = el('a');
+  const url = URL.createObjectURL(new Blob([JSON.stringify({
+    version: 1,
+    notebook: project()
+  }, null, 2)], {
+    type: 'application/json'
+  }));
+  a.href = url;
+  a.download = (project().title || 'notebook') + '.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+$('#import').onclick = () => $('#file').click();
+$('#file').onchange = async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const d = JSON.parse(await file.text());
+    if (d.version !== 1 || !valid(d.notebook)) throw Error();
+    addProject(d.notebook);
+  } catch {
+    $('#status').textContent = t('Could not import this notebook. Check its JSON format.', '匯入失敗，請確認筆記本的 JSON 格式。');
+  }
+  e.target.value = '';
+};
+render();
+</script>
+</body></html>
